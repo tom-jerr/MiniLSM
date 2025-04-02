@@ -1,0 +1,435 @@
+{
+  // 使用 IntelliSense 了解相关属性。 
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'mini_lsm'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "mini_lsm",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'compaction-simulator-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=compaction-simulator-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "compaction-simulator-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'compaction-simulator-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=compaction-simulator-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "compaction-simulator-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-cli-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-cli-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-cli-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-cli-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-wrapper-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-wrapper-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "mini-lsm-wrapper-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-wrapper-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-wrapper-ref",
+          "--package=mini-lsm"
+        ],
+        "filter": {
+          "name": "mini-lsm-wrapper-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-xtask'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-xtask",
+          "--package=mini-lsm-xtask"
+        ],
+        "filter": {
+          "name": "mini-lsm-xtask",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-xtask'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-xtask",
+          "--package=mini-lsm-xtask"
+        ],
+        "filter": {
+          "name": "mini-lsm-xtask",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'mini_lsm_starter'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "mini_lsm_starter",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'compaction-simulator'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=compaction-simulator",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "compaction-simulator",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'compaction-simulator'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=compaction-simulator",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "compaction-simulator",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-cli'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-cli",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-cli'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-cli",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'wrapper'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=wrapper",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "wrapper",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'wrapper'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=wrapper",
+          "--package=mini-lsm-starter"
+        ],
+        "filter": {
+          "name": "wrapper",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'mini_lsm_mvcc'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "mini_lsm_mvcc",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'compaction-simulator-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=compaction-simulator-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "compaction-simulator-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'compaction-simulator-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=compaction-simulator-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "compaction-simulator-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-cli-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-cli-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-cli-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-cli-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "mini-lsm-cli-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'mini-lsm-wrapper-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=mini-lsm-wrapper-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "mini-lsm-wrapper-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'mini-lsm-wrapper-mvcc-ref'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=mini-lsm-wrapper-mvcc-ref",
+          "--package=mini-lsm-mvcc"
+        ],
+        "filter": {
+          "name": "mini-lsm-wrapper-mvcc-ref",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
