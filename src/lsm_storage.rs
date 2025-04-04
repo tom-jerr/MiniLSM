@@ -348,27 +348,26 @@ impl LsmStorageInner {
     /// Put a key-value pair into the storage by writing into the current memtable.
     pub fn put(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
         if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
-            // Force freeze the memtable if it reaches the limit before putting new data
-            let _ = self.force_freeze_memtable(&self.state_lock.lock());
+            let state_lock = self.state_lock.lock(); // lock the state to freeze the memtable
+            if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
+                let _ = self.force_freeze_memtable(&state_lock);
+            }
         }
         self.state
             .read() // 这里用read，并发安全性由memtable中的跳表来保证
             .memtable
             .put(_key, _value)
-            .map_err(|e| e.into())
     }
 
     /// Remove a key from the storage by writing an empty value.
     pub fn delete(&self, _key: &[u8]) -> Result<()> {
         if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
-            // Force freeze the memtable if it reaches the limit before putting new data
-            let _ = self.force_freeze_memtable(&self.state_lock.lock());
+            let state_lock = self.state_lock.lock(); // lock the state to freeze the memtable
+            if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
+                let _ = self.force_freeze_memtable(&state_lock);
+            }
         }
-        self.state
-            .read()
-            .memtable
-            .put(_key, b"") // Use an empty byte slice to indicate deletion
-            .map_err(|e| e.into())
+        self.state.read().memtable.put(_key, b"") // Use an empty byte slice to indicate deletion
     }
 
     pub(crate) fn path_of_sst_static(path: impl AsRef<Path>, id: usize) -> PathBuf {

@@ -23,6 +23,7 @@ use std::sync::atomic::AtomicUsize;
 
 use anyhow::Result;
 use crossbeam_skiplist::SkipMap;
+use crossbeam_skiplist::map::Entry;
 
 use ouroboros::self_referencing;
 // use serde::de::value;
@@ -98,10 +99,9 @@ impl MemTable {
     pub fn get(&self, _key: &[u8]) -> Option<Bytes> {
         let key_bytes = Bytes::copy_from_slice(_key); // Convert the key slice to `Bytes`
         // Use the skipmap to get the value by key.
-        match self.map.get(key_bytes.as_ref()) {
-            Some(value) => Some(value.clone().value().clone()), // Return a clone of the value to avoid ownership issues.
-            None => None, // Return None if the key does not exist in the mem-table.
-        }
+        self.map
+            .get(key_bytes.as_ref())
+            .map(|value| value.clone().value().clone())
     }
 
     /// Put a key-value pair into the mem-table.
@@ -138,7 +138,15 @@ impl MemTable {
 
     /// Get an iterator over a range of keys.
     pub fn scan(&self, _lower: Bound<&[u8]>, _upper: Bound<&[u8]>) -> MemTableIterator {
-        unimplemented!()
+        let (lower_bound, upper_bound) = (map_bound(_lower), map_bound(_upper));
+        let mut iter = MemTableIteratorBuilder {
+            map: self.map.clone(), // Pass the skipmap
+            iter_builder: |map| map.range((lower_bound, upper_bound)),
+            item: (Bytes::new(), Bytes::new()), // Initialize with empty Bytes for the first entry
+        }
+        .build();
+        iter.next().unwrap();
+        iter
     }
 
     /// Flush the mem-table to SSTable. Implement in week 1 day 6.
@@ -179,23 +187,44 @@ pub struct MemTableIterator {
     /// Stores the current key-value pair.
     item: (Bytes, Bytes),
 }
+impl MemTableIterator {
+    fn entry_to_item(entry: Option<Entry<'_, Bytes, Bytes>>) -> (Bytes, Bytes) {
+        entry
+            .map(|x| (x.key().clone(), x.value().clone()))
+            .unwrap_or_else(|| (Bytes::from_static(&[]), Bytes::from_static(&[])))
+    }
+}
 
 impl StorageIterator for MemTableIterator {
     type KeyType<'a> = KeySlice<'a>;
 
     fn value(&self) -> &[u8] {
-        unimplemented!()
+        &self
+            .borrow_item()
+            .1 // Get the value from the tuple (Bytes, Bytes)
+            .as_ref() // Convert to &[u8] 
     }
 
     fn key(&self) -> KeySlice {
-        unimplemented!()
+        KeySlice::from_slice(
+            self.borrow_item()
+                .0 // Get the key from the tuple (Bytes, Bytes)
+                .as_ref(), // Convert to &[u8]
+        )
     }
 
     fn is_valid(&self) -> bool {
-        unimplemented!()
+        !self.borrow_item().0.is_empty() // Ensure the key is not empty
     }
 
     fn next(&mut self) -> Result<()> {
-        unimplemented!()
+        // Move to the next entry in the skipmap iterator.
+        let entry = self.with_iter_mut(|iter| MemTableIterator::entry_to_item(iter.next()));
+        // Update the current item in the MemTableIterator.
+        self.with_mut(|x| {
+            *x.item = entry; // Update the item with the new key-value pair
+        });
+
+        Ok(())
     }
 }
