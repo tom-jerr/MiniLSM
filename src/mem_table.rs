@@ -199,8 +199,7 @@ impl StorageIterator for MemTableIterator {
     type KeyType<'a> = KeySlice<'a>;
 
     fn value(&self) -> &[u8] {
-        &self
-            .borrow_item()
+        self.borrow_item()
             .1 // Get the value from the tuple (Bytes, Bytes)
             .as_ref() // Convert to &[u8] 
     }
