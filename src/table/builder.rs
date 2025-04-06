@@ -19,15 +19,16 @@ use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::Result;
+use bytes::BufMut;
 
-use super::{BlockMeta, SsTable};
-use crate::{block::BlockBuilder, key::KeySlice, lsm_storage::BlockCache};
+use super::{BlockMeta, FileObject, SsTable};
+use crate::{block::BlockBuilder, key::KeySlice, key::KeyVec, lsm_storage::BlockCache};
 
 /// Builds an SSTable from key-value pairs.
 pub struct SsTableBuilder {
     builder: BlockBuilder,
-    first_key: Vec<u8>,
-    last_key: Vec<u8>,
+    first_key: KeyVec,
+    last_key: KeyVec,
     data: Vec<u8>,
     pub(crate) meta: Vec<BlockMeta>,
     block_size: usize,
@@ -36,7 +37,14 @@ pub struct SsTableBuilder {
 impl SsTableBuilder {
     /// Create a builder based on target block size.
     pub fn new(block_size: usize) -> Self {
-        unimplemented!()
+        Self {
+            data: Vec::new(),
+            meta: Vec::new(),
+            first_key: KeyVec::new(),
+            last_key: KeyVec::new(),
+            builder: BlockBuilder::new(block_size),
+            block_size,
+        }
     }
 
     /// Adds a key-value pair to SSTable.
@@ -44,7 +52,30 @@ impl SsTableBuilder {
     /// Note: You should split a new block when the current block is full.(`std::mem::replace` may
     /// be helpful here)
     pub fn add(&mut self, key: KeySlice, value: &[u8]) {
-        unimplemented!()
+        if self.first_key.is_empty() {
+            self.first_key.set_from_slice(key);
+        }
+        if self.builder.add(key, value) {
+            self.last_key.set_from_slice(key);
+            return;
+        }
+        // the current block is full, we need to create a new block
+        self.complete_current_block();
+        // add the key-value pair to the new block
+        assert!(self.builder.add(key, value));
+        self.first_key.set_from_slice(key);
+        self.last_key.set_from_slice(key);
+    }
+
+    fn complete_current_block(&mut self) {
+        let builder = std::mem::replace(&mut self.builder, BlockBuilder::new(self.block_size));
+        // let encoded_block = builder.build().encode();
+        self.meta.push(BlockMeta {
+            offset: self.data.len(),
+            first_key: std::mem::take(&mut self.first_key).into_key_bytes(),
+            last_key: std::mem::take(&mut self.last_key).into_key_bytes(),
+        });
+        // self.data.extend(encoded_block);
     }
 
     /// Get the estimated size of the SSTable.
@@ -52,17 +83,41 @@ impl SsTableBuilder {
     /// Since the data blocks contain much more data than meta blocks, just return the size of data
     /// blocks here.
     pub fn estimated_size(&self) -> usize {
-        unimplemented!()
+        self.data.len()
     }
 
     /// Builds the SSTable and writes it to the given path. Use the `FileObject` structure to manipulate the disk objects.
+    /// -------------------------------------------------------------------------------------------
+    /// |         Block Section         |          Meta Section         |          Extra          |
+    /// -------------------------------------------------------------------------------------------
+    /// | data block | ... | data block |            metadata           | meta block offset (u32) |
+    /// -------------------------------------------------------------------------------------------
+
     pub fn build(
-        self,
+        mut self,
         id: usize,
         block_cache: Option<Arc<BlockCache>>,
         path: impl AsRef<Path>,
     ) -> Result<SsTable> {
-        unimplemented!()
+        // 即使当前 block builder还在写入，也需要完成当前 block 的写入，所以需要执行 complete_current_block
+        self.complete_current_block();
+        let mut buf = self.data;
+        let meta_offset = buf.len();
+        BlockMeta::encode_block_meta(&self.meta, &mut buf);
+        buf.put_u32(meta_offset as u32);
+
+        let file = FileObject::create(path.as_ref(), buf)?;
+        Ok(SsTable {
+            id,
+            file,
+            first_key: self.meta.first().unwrap().first_key.clone(),
+            last_key: self.meta.last().unwrap().last_key.clone(),
+            block_meta: self.meta,
+            block_meta_offset: meta_offset,
+            block_cache,
+            bloom: None,
+            max_ts: 0,
+        })
     }
 
     #[cfg(test)]
