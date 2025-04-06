@@ -54,6 +54,40 @@ pub(crate) fn map_bound(bound: Bound<&[u8]>) -> Bound<Bytes> {
     }
 }
 
+/// 将 Rust 范围转换为 (lower, upper) 的 Bound<Bytes>
+pub trait ToBounds {
+    fn to_bounds(&self) -> (Bound<Bytes>, Bound<Bytes>);
+}
+
+// 为 RangeFull（即 `..`）实现
+impl ToBounds for std::ops::RangeFull {
+    fn to_bounds(&self) -> (Bound<Bytes>, Bound<Bytes>) {
+        (Bound::Unbounded, Bound::Unbounded)
+    }
+}
+
+// 为 RangeInclusive<&[u8; N]> 实现，闭区间[start, end]
+impl<const N: usize> ToBounds for std::ops::RangeInclusive<&[u8; N]> {
+    fn to_bounds(&self) -> (Bound<Bytes>, Bound<Bytes>) {
+        let (start, end) = (self.start().as_slice(), self.end().as_slice());
+        (
+            Bound::Included(Bytes::copy_from_slice(start)),
+            Bound::Included(Bytes::copy_from_slice(end)),
+        )
+    }
+}
+
+// 为 Range<&[u8; N]> 实现，半开区间[start, end)
+impl<const N: usize> ToBounds for std::ops::Range<&[u8; N]> {
+    fn to_bounds(&self) -> (Bound<Bytes>, Bound<Bytes>) {
+        let (start, end) = (self.start.as_slice(), self.end.as_slice());
+        (
+            Bound::Included(Bytes::copy_from_slice(start)),
+            Bound::Excluded(Bytes::copy_from_slice(end)),
+        )
+    }
+}
+
 impl MemTable {
     /// Create a new mem-table.
     pub fn create(_id: usize) -> Self {
@@ -93,6 +127,10 @@ impl MemTable {
         upper: Bound<&[u8]>,
     ) -> MemTableIterator {
         self.scan(lower, upper)
+    }
+
+    pub fn for_testing_scan_range_slice<T: ToBounds>(&self, range: T) -> MemTableIterator {
+        self.scan_range(range)
     }
 
     /// Get a value by key.
@@ -139,6 +177,18 @@ impl MemTable {
     /// Get an iterator over a range of keys.
     pub fn scan(&self, _lower: Bound<&[u8]>, _upper: Bound<&[u8]>) -> MemTableIterator {
         let (lower_bound, upper_bound) = (map_bound(_lower), map_bound(_upper));
+        let mut iter = MemTableIteratorBuilder {
+            map: self.map.clone(), // Pass the skipmap
+            iter_builder: |map| map.range((lower_bound, upper_bound)),
+            item: (Bytes::new(), Bytes::new()), // Initialize with empty Bytes for the first entry
+        }
+        .build();
+        iter.next().unwrap();
+        iter
+    }
+
+    pub fn scan_range<R: ToBounds>(&self, range: R) -> MemTableIterator {
+        let (lower_bound, upper_bound) = range.to_bounds();
         let mut iter = MemTableIteratorBuilder {
             map: self.map.clone(), // Pass the skipmap
             iter_builder: |map| map.range((lower_bound, upper_bound)),
