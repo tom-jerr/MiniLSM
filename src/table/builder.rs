@@ -69,13 +69,14 @@ impl SsTableBuilder {
 
     fn complete_current_block(&mut self) {
         let builder = std::mem::replace(&mut self.builder, BlockBuilder::new(self.block_size));
-        // let encoded_block = builder.build().encode();
+        let encoded_block = builder.build().encode();
         self.meta.push(BlockMeta {
             offset: self.data.len(),
             first_key: std::mem::take(&mut self.first_key).into_key_bytes(),
             last_key: std::mem::take(&mut self.last_key).into_key_bytes(),
         });
-        // self.data.extend(encoded_block);
+        // 把数据加入进来
+        self.data.extend(encoded_block);
     }
 
     /// Get the estimated size of the SSTable.
@@ -99,7 +100,7 @@ impl SsTableBuilder {
         block_cache: Option<Arc<BlockCache>>,
         path: impl AsRef<Path>,
     ) -> Result<SsTable> {
-        // 即使当前 block builder还在写入，也需要完成当前 block 的写入，所以需要执行 complete_current_block
+        // 需要把最后一个块的 meta 和 data 也加入进来，所以需要执行 complete_current_block
         self.complete_current_block();
         let mut buf = self.data;
         let meta_offset = buf.len();

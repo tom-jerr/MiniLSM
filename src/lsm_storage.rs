@@ -364,6 +364,7 @@ impl LsmStorageInner {
     pub fn delete(&self, _key: &[u8]) -> Result<()> {
         if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
             let state_lock = self.state_lock.lock(); // lock the state to freeze the memtable
+            // 避免两个线程同时调用force_freeze_memtable，必须保证只能有一个线程获取到锁
             if self.state.read().memtable.approximate_size() >= self.options.num_memtable_limit {
                 let _ = self.force_freeze_memtable(&state_lock);
             }

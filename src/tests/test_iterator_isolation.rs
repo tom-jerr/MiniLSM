@@ -27,6 +27,7 @@ fn test_scan_concurrent_insert() {
     assert!(iter.is_valid());
     assert_eq!(iter.key().for_testing_key_ref(), b"key4");
     assert_eq!(iter.value(), b"value4");
+    iter.next().unwrap();
     assert!(!iter.is_valid());
 }
 #[test]

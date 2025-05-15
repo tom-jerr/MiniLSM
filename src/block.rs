@@ -33,20 +33,30 @@ impl Block {
     /// Note: You may want to recheck if any of the expected field is missing from your output
     pub fn encode(&self) -> Bytes {
         let mut buf = self.data.clone();
+        let data_len = self.data.len();
         let offsets_len = self.offsets.len();
         for offset in &self.offsets {
             buf.put_u16(*offset);
         }
+        let offset_real_len = buf.len() - data_len;
+        debug_assert_eq!(
+            offset_real_len,
+            offsets_len * SIZEOF_U16,
+            "offset_real_len should be equal to offsets_len * SIZEOF_U16"
+        );
         // Add number of elements at the end of the block
         buf.put_u16(offsets_len as u16);
+        debug_assert!(buf.len() < 4096, "buf.len() should be less than 4096");
         buf.into()
     }
 
     /// Decode from the data layout, transform the input `data` to a single `Block`
     pub fn decode(data: &[u8]) -> Self {
+        debug_assert!(data.len() < 4096, "data.len() should be less than 4096");
         // get the number of elements
         let entry_offsets_num = (&data[data.len() - SIZEOF_U16..]).get_u16() as usize;
         let data_end = data.len() - SIZEOF_U16 - entry_offsets_num * SIZEOF_U16;
+        debug_assert!(data_end > 0, "data_end should be greater than 0");
         let offsets_raw = &data[data_end..data.len() - SIZEOF_U16];
         // get offset array
         let offsets = offsets_raw
