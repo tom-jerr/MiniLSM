@@ -28,11 +28,10 @@ pub use builder::SsTableBuilder;
 use bytes::{Buf, BufMut};
 pub use iterator::SsTableIterator;
 
+use self::bloom::Bloom;
 use crate::block::Block;
 use crate::key::{KeyBytes, KeySlice};
 use crate::lsm_storage::BlockCache;
-
-use self::bloom::Bloom;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BlockMeta {
@@ -156,7 +155,10 @@ pub struct SsTable {
 impl SsTable {
     #[cfg(test)]
     pub(crate) fn open_for_test(file: FileObject) -> Result<Self> {
-        Self::open(0, None, file)
+        use moka::sync::Cache;
+
+        let blk_cache: BlockCache = Cache::new(20);
+        Self::open(0, Some(Arc::new(blk_cache)), file)
     }
 
     /// Open SSTable from a file.
@@ -218,7 +220,22 @@ impl SsTable {
 
     /// Read a block from disk, with block cache. (Day 4)
     pub fn read_block_cached(&self, block_idx: usize) -> Result<Arc<Block>> {
-        unimplemented!()
+        if let Some(cache) = &self.block_cache {
+            if let Ok(block) =
+                cache.try_get_with((self.sst_id(), block_idx), || -> Result<Arc<Block>> {
+                    let block = self.read_block(block_idx)?;
+                    self.block_cache
+                        .as_ref()
+                        .unwrap()
+                        .insert((self.sst_id(), block_idx), block.clone());
+                    Ok(block)
+                })
+            {
+                return Ok(block);
+            }
+        }
+        // If we do not have block cache, just read block from disk.
+        self.read_block(block_idx)
     }
 
     /// Find the block that may contain `key`.
